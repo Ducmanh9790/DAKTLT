@@ -9,6 +9,7 @@
 #include <map>
 #include <conio.h>  // Để sử dụng getch() và kbhit()
 #include <windows.h> // Để điều khiển màu sắc và console
+#include <sstream>  // THÊM DÒNG NÀY ĐỂ SỬ DỤNG ostringstream
 using namespace std;
 
 // Màu sắc console
@@ -1251,65 +1252,88 @@ void drawTableSeparator(int x, int y, int width) {
     cout << "┤";
 }
 
-// Sửa lại header bảng với kích thước phù hợp
+// Sửa lại header bảng với căn giữa các cột
 void printTableHeader(int x, int y) {
+    // Hàm helper để căn giữa text cho header
+    auto centerHeaderText = [](string text, int width) -> string {
+        if(text.length() >= width) return text.substr(0, width);
+        int padding = (width - text.length()) / 2;
+        int rightPadding = width - text.length() - padding;
+        return string(padding, ' ') + text + string(rightPadding, ' ');
+    };
+    
     setColor(YELLOW);
-    gotoxy(x + 2, y);
-    cout << left << setw(8) << "Ma Lop" << "  "
-         << "│" << setw(10) << "Ma SV" << "  "
-         << "│" << setw(22) << "Ho Ten" << " "
-         << "│" << setw(10) << "Ngay Sinh" << "  "
-         << "│" << setw(6) << "Diem TB";
+    gotoxy(x+1, y);
+    cout << centerHeaderText("Ma Lop", 8) << "│"     // 8 + 1 = 9
+         << centerHeaderText("Ma SV", 14) << "│"     // 10 + 1 = 11  
+         << centerHeaderText("Ho Ten", 24) << "│"      //24
+         << centerHeaderText("Ngay Sinh", 14) << "│" // 10 + 1 = 11
+         << centerHeaderText("Diem TB", 12);          // 8 = 8
+    // Tổng: 9 + 11 + 21 + 11 + 8 = 60 (còn lại 16 ký tự cho khoảng trắng)
 }
 
-// Sửa lại hàm printStudentRow để không tràn dữ liệu
+// Sửa lại hàm printStudentRow để căn giữa các cột
 void printStudentRow(int x, int y, const Student& sv, bool highlight) {
+    // XÁC ĐỊNH MÀU DỰA TRÊN ĐIỂM TB
+    int rowColor;
+    if(sv.diemTBTL >= 8.0) rowColor = LIGHTGREEN;
+    else if(sv.diemTBTL >= 6.5) rowColor = YELLOW;
+    else if(sv.diemTBTL >= 5.0) rowColor = LIGHTGRAY;
+    else rowColor = LIGHTRED;
+    
+    gotoxy(x+1, y);
+    
+    // Giới hạn độ dài dữ liệu để không tràn
+    string displayMaLop = sv.maLop.length() > 8 ? sv.maLop.substr(0, 8) : sv.maLop;
+    string displayMaSV = sv.maSV.length() > 14 ? sv.maSV.substr(0, 14) : sv.maSV;
+    string displayHoTen = sv.hoTen.length() > 24 ? sv.hoTen.substr(0, 24) : sv.hoTen; // Giảm từ 22 xuống 20
+    
+    // Hàm helper để căn giữa text
+    auto centerText = [](string text, int width) -> string {
+        if(text.length() >= width) return text.substr(0, width);
+        int padding = (width - text.length()) / 2;
+        int rightPadding = width - text.length() - padding;
+        return string(padding, ' ') + text + string(rightPadding, ' ');
+    };
+    
+    // Ma Lop - CĂN GIỮA (8 ký tự)
     if(highlight) {
         setColor(BLACK);
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
                               BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY);
     } else {
-        if(sv.diemTBTL >= 8.0) setColor(LIGHTGREEN);
-        else if(sv.diemTBTL >= 6.5) setColor(YELLOW);
-        else if(sv.diemTBTL >= 5.0) setColor(LIGHTGRAY);
-        else setColor(LIGHTRED);
+        setColor(rowColor);
     }
-    
-    gotoxy(x + 2, y);
-    
-    // Giới hạn độ dài dữ liệu để không tràn - SỬA LẠI ĐỘ DÀI
-    string displayMaLop = sv.maLop.length() > 8 ? sv.maLop.substr(0, 8) : sv.maLop;
-    string displayMaSV = sv.maSV.length() > 10 ? sv.maSV.substr(0, 10) : sv.maSV;
-    string displayHoTen = sv.hoTen.length() > 22 ? sv.hoTen.substr(0, 22) : sv.hoTen;
-    
-    // Ma Lop - CỐ ĐỊNH 8 KÝ TỰ
-    cout << left << setw(8) << displayMaLop << "  ";
+    cout << centerText(displayMaLop, 8);
     
     setColor(highlight ? BLACK : LIGHTCYAN);
     cout << "│";
     
+    // Ma SV - CĂN GIỮA (10 ký tự)
     if(highlight) {
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
                               BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY);
+    } else {
+        setColor(rowColor);
     }
-    
-    // Ma SV - CỐ ĐỊNH 10 KÝ TỰ
-    cout << left << setw(10) << displayMaSV << "  ";
+    cout << centerText(displayMaSV, 14);
     
     setColor(highlight ? BLACK : LIGHTCYAN);
     cout << "│";
     
+    // Ho Ten - CĂN TRÁI (20 ký tự)
     if(highlight) {
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
                               BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY);
+    } else {
+        setColor(rowColor);
     }
-    
-    // Ho Ten - CỐ ĐỊNH 22 KÝ TỰ
-    cout << left << setw(22) << displayHoTen << " ";
+    cout << left << setw(24) << displayHoTen; // Giảm từ 22 xuống 20
     
     setColor(highlight ? BLACK : LIGHTCYAN);
     cout << "│";
     
+    // Ngay Sinh - CĂN GIỮA (10 ký tự)
     if(highlight) {
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
                               BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY);
@@ -1317,26 +1341,31 @@ void printStudentRow(int x, int y, const Student& sv, bool highlight) {
         setColor(LIGHTMAGENTA);
     }
     
-    // Ngay Sinh - CỐ ĐỊNH 10 KÝ TỰ
-    cout << setfill('0') << setw(2) << sv.ngaySinh.day << "/"
-         << setw(2) << sv.ngaySinh.month << "/"
-         << setw(4) << sv.ngaySinh.year << setfill(' ') << "  ";
+    // Format ngày sinh với căn giữa
+    ostringstream dateStream;
+    dateStream << setfill('0') << setw(2) << sv.ngaySinh.day << "/"
+               << setw(2) << sv.ngaySinh.month << "/"
+               << sv.ngaySinh.year;
+    string dateStr = dateStream.str();
+    
+    cout << centerText(dateStr, 14);
     
     setColor(highlight ? BLACK : LIGHTCYAN);
     cout << "│";
     
+    // Diem TB - CĂN GIỮA (8 ký tự, cột cuối)
     if(highlight) {
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
                               BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY);
     } else {
-        if(sv.diemTBTL >= 8.0) setColor(LIGHTGREEN);
-        else if(sv.diemTBTL >= 6.5) setColor(YELLOW);
-        else if(sv.diemTBTL >= 5.0) setColor(LIGHTGRAY);
-        else setColor(LIGHTRED);
+        setColor(rowColor);
     }
     
-    // Diem TB - CỐ ĐỊNH 6 KÝ TỰ
-    cout << right << setw(6) << fixed << setprecision(2) << sv.diemTBTL;
+    // Format điểm với căn giữa
+    ostringstream scoreStream;
+    scoreStream << fixed << setprecision(2) << sv.diemTBTL;
+    string scoreStr = scoreStream.str();
+    cout << centerText(scoreStr, 12);
     
     setColor(LIGHTGRAY);
 }
