@@ -61,7 +61,7 @@ struct Student {
 
 // Khai báo các hàm
 void addStudent(vector<Student>& students);
-void printStudents(const vector<Student>& students);
+void printStudents(vector<Student>& students);
 void statisticsMenu(const vector<Student>& students);
 void saveToFile(const vector<Student>& students);
 void loadFromFile(vector<Student>& students);
@@ -82,13 +82,14 @@ Date inputDateTextBox(string prompt, int x, int y);
 // Thêm vào phần khai báo hàm (sau dòng 76):
 void displaySearchResults(const vector<Student>& results, const string& keyword);
 float inputFloatTextBox(string prompt, int x, int y, float min, float max);
-void editStudent(vector<Student>& students);
 void drawTableBorder(int x, int y, int width, int height);
 void drawTableSeparator(int x, int y, int width);
 void printTableHeader(int x, int y);
 void printStudentRow(int x, int y, const Student& sv, bool highlight);
-void showStudentDetail(const Student& sv);
 void drawStatBar(string label, int count, int total, int x, int y, int color);
+int showEditDeleteMenu(const Student& sv);
+void editStudentInPlace(vector<Student>& students, int index);
+bool confirmDelete(const Student& sv);
 
 void setColor(int color) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
@@ -109,15 +110,14 @@ void clearScreen() {
 int showAdvancedMenu() {
     string menuItems[] = {
         "1. Them moi ho so sinh vien",
-        "2. Sua thong tin sinh vien",
-        "3. In danh sach sinh vien", 
-        "4. Sap xep danh sach",
-        "5. Tim kiem sinh vien",
-        "6. Thong ke bao cao",
-        "7. Thoat chuong trinh"
+        "2. In danh sach sinh vien",      // Đẩy lên từ chức năng 3
+        "3. Sap xep danh sach",           // Đẩy lên từ chức năng 4
+        "4. Tim kiem sinh vien",          // Đẩy lên từ chức năng 5
+        "5. Thong ke bao cao",            // Đẩy lên từ chức năng 6
+        "6. Thoat chuong trinh"           // Đẩy lên từ chức năng 7
     };
     
-    int menuSize = 7;
+    int menuSize = 6; // Giảm từ 7 xuống 6
     int selected = 0;
     int key;
     
@@ -153,7 +153,7 @@ int showAdvancedMenu() {
         }
         
         setColor(LIGHTGREEN);  
-        gotoxy(25, 16);
+        gotoxy(25, 15);
         cout << "Chuc nang duoc chon: " << (selected + 1);
         
         // Đọc phím
@@ -171,9 +171,9 @@ int showAdvancedMenu() {
             }
         } else if(key == KEY_ENTER) {
             setColor(LIGHTGRAY);
-            return selected + 1;
+            return selected + 1; // Trả về 1-6
         } else if(key == KEY_ESC) {
-            return 7; // Thoát
+            return 6; // Thoát (giảm từ 7 xuống 6)
         }
     }
 }
@@ -324,7 +324,7 @@ int showSearchMenu() {
     }
 }
 
-// Cập nhật hàm main để sử dụng menu nâng cao
+// Cập nhật hàm main - Bỏ chức năng 2 và đẩy các chức năng lên
 int main() {
     // Thiết lập console để hiển thị Unicode
     SetConsoleOutputCP(CP_UTF8);
@@ -344,31 +344,27 @@ int main() {
                 addStudent(students);
                 break;
             case 2:
-                editStudent(students);
+                printStudents(students); // Chuyển từ case 3
                 break;
-            case 3:
-                printStudents(students);
-                break;
-            case 4: {
-                int sortChoice = showSortMenu();
+            case 3: {
+                int sortChoice = showSortMenu(); // Chuyển từ case 4
                 if(sortChoice > 0) {
-                    // Thực hiện sắp xếp dựa trên lựa chọn
                     sortStudents(students, sortChoice);
                 }
                 break;
             }
-            case 5: {
-                int searchChoice = showSearchMenu();
+            case 4: {
+                int searchChoice = showSearchMenu(); // Chuyển từ case 5
                 if(searchChoice > 0) {
                     searchStudents(students, searchChoice);
                 }
                 break;
             }
-            case 6:
-                statisticsMenu(students);
+            case 5:
+                statisticsMenu(students); // Chuyển từ case 6
                 break;
-            case 7:
-                saveToFile(students);
+            case 6:
+                saveToFile(students); // Chuyển từ case 7
                 setColor(LIGHTGREEN);
                 clearScreen();
                 gotoxy(30, 10);
@@ -383,14 +379,7 @@ int main() {
                 cout << "Lua chon khong hop le!";
                 _getch();
         }
-        
-        if(choice != 7) {
-            setColor(YELLOW);
-            gotoxy(25, 20);
-            cout << "Nhan phim bat ky de tiep tuc...";
-            _getch();
-        }
-    } while(choice != 7);
+    } while(choice != 6); // Giảm từ choice != 7 xuống choice != 6
     
     setColor(LIGHTGRAY);
     return 0;
@@ -571,28 +560,28 @@ void addStudent(vector<Student>& students) {
     
     // Vẽ tiêu đề
     setColor(LIGHTCYAN);
-    gotoxy(25, 2);
+    gotoxy(25, 1);
     cout << "==============================";
-    gotoxy(25, 3);
+    gotoxy(25, 2);
     cout << "    THEM MOI SINH VIEN       ";
-    gotoxy(25, 4);
+    gotoxy(25, 3);
     cout << "==============================";
     
     // Hướng dẫn sử dụng
     setColor(YELLOW);
-    gotoxy(15, 6);
+    gotoxy(15, 4);
     cout << "Su dung phim mui ten, Home/End, Delete/Backspace de chinh sua";
-    gotoxy(15, 7);
+    gotoxy(15, 5);
     cout << "Nhan Enter de xac nhan, ESC de huy";
     
     // Nhập dữ liệu với textbox
-    sv.maLop = inputTextBox("Ma lop:", 20, 10, 25);
+    sv.maLop = inputTextBox("Ma lop:", 20, 7, 25);
     if(sv.maLop.empty()) return;
     
     // Kiểm tra mã sinh viên (8 số)
     bool validMaSV = false;
     do {
-        sv.maSV = inputTextBox("Ma sinh vien (8 so):", 20, 14, 25, sv.maSV);
+        sv.maSV = inputTextBox("Ma sinh vien (8 so):", 20, 11, 25, sv.maSV);
         if(sv.maSV.empty()) return;
         
         validMaSV = (sv.maSV.length() == 8 && 
@@ -608,115 +597,33 @@ void addStudent(vector<Student>& students) {
         }
     } while(!validMaSV);
     
-    sv.hoTen = inputTextBox("Ho va ten:", 20, 18, 35);
+    sv.hoTen = inputTextBox("Ho va ten:", 20, 15, 35);
     if(sv.hoTen.empty()) return;
     sv.hoTen = formatName(sv.hoTen);
     
     // Nhập ngày sinh với validation
-    sv.ngaySinh = inputDateTextBox("Ngay sinh", 20, 22);
+    sv.ngaySinh = inputDateTextBox("Ngay sinh", 20, 19);
     
     // Nhập điểm với validation
-    sv.diemTBTL = inputFloatTextBox("Diem trung binh tich luy", 20, 27, 0.0, 10.0);
+    sv.diemTBTL = inputFloatTextBox("Diem trung binh tich luy", 20, 23, 0.0, 10.0);
     
     students.push_back(sv);
     
     // LƯU TỰ ĐỘNG VÀO FILE
     saveToFile(students);
-    
     // Thông báo thành công
     setColor(LIGHTGREEN);
-    gotoxy(30, 40);
+    gotoxy(20, 27);
     cout << "THEM SINH VIEN THANH CONG!";
-    gotoxy(30, 41);
-    cout << "Du lieu da duoc luu tu dong!";
-    gotoxy(30, 42);
-    cout << "Nhan phim bat ky de tiep tuc...";
+    gotoxy(20, 28);
+    cout << "Nhan phim bat ki de thoat!";
+    /*gotoxy(30, 42);
+    cout << "Nhan phim bat ky de tiep tuc...";*/
     _getch();
 }
 
-// Hàm sửa thông tin sinh viên
-void editStudent(vector<Student>& students) {
-    if(students.empty()) {
-        setColor(LIGHTRED);
-        clearScreen();
-        gotoxy(30, 10);
-        cout << "Danh sach sinh vien trong!";
-        gotoxy(30, 11);
-        cout << "Nhan phim bat ky de quay lai...";
-        _getch();
-        return;
-    }
-    
-    clearScreen();
-    setColor(LIGHTCYAN);
-    gotoxy(25, 2);
-    cout << "==============================";
-    gotoxy(25, 3);
-    cout << "    SUA THONG TIN SINH VIEN   ";
-    gotoxy(25, 4);
-    cout << "==============================";
-    
-    // Hiển thị danh sách sinh viên
-    setColor(LIGHTGRAY);
-    gotoxy(5, 6);
-    cout << left << setw(5) << "STT" << setw(12) << "Ma SV" << setw(25) << "Ho Ten" << setw(12) << "Ma Lop";
-    
-    for(int i = 0; i < students.size() && i < 10; i++) { // Chỉ hiển thị 10 sinh viên đầu
-        gotoxy(5, 7 + i);
-        cout << left << setw(5) << (i + 1) 
-             << setw(12) << students[i].maSV.substr(0, 11)    // Giới hạn độ dài
-             << setw(25) << students[i].hoTen.substr(0, 24)   // Giới hạn độ dài
-             << setw(12) << students[i].maLop.substr(0, 11);  // Giới hạn độ dài
-    }
-    
-    // Chọn sinh viên cần sửa
-    string indexStr = inputTextBox("Chon so thu tu sinh vien can sua:", 20, 18, 5, ""); 
-    
-    try {
-        int index = stoi(indexStr) - 1;
-        if(index >= 0 && index < students.size()) {
-            Student& sv = students[index];
-            
-            clearScreen();
-            setColor(LIGHTCYAN);
-            gotoxy(25, 2);
-            cout << "SUA THONG TIN: " << sv.hoTen;
-            
-            // Sửa từng trường với giá trị mặc định là giá trị hiện tại
-            sv.maLop = inputTextBox("Ma lop:", 20, 6, 25, sv.maLop);
-            sv.maSV = inputTextBox("Ma sinh vien:", 20, 10, 25, sv.maSV);
-            sv.hoTen = inputTextBox("Ho va ten:", 20, 14, 35, sv.hoTen);
-            sv.hoTen = formatName(sv.hoTen);
-            
-            // Ngày sinh
-            char dateBuffer[20];
-            sprintf(dateBuffer, "%02d/%02d/%04d", sv.ngaySinh.day, sv.ngaySinh.month, sv.ngaySinh.year);
-            sv.ngaySinh = inputDateTextBox("Ngay sinh", 20, 18);
-            
-            // Điểm
-            sv.diemTBTL = inputFloatTextBox("Diem TB", 20, 23, 0.0, 10.0);
-            
-            setColor(LIGHTGREEN);
-            gotoxy(25, 28);
-            cout << "CAP NHAT THANH CONG!";
-        } else {
-            setColor(LIGHTRED);
-            gotoxy(25, 28);
-            cout << "So thu tu khong hop le!";
-        }
-    } catch(...) {
-        setColor(LIGHTRED);
-        gotoxy(25, 28);
-        cout << "Vui long nhap so hop le!";
-    }
-    
-    gotoxy(25, 29);
-    cout << "Nhan phim bat ky de tiep tuc...";
-    _getch();
-}
-
-// Sửa lại hàm printStudents với bảng cao hơn
-void printStudents(const vector<Student>& students) {
+// Cập nhật hàm printStudents - Enter để hiển thị menu Sửa/Xóa
+void printStudents(vector<Student>& students) {
     if(students.empty()) {
         clearScreen();
         setColor(LIGHTRED);
@@ -751,11 +658,11 @@ void printStudents(const vector<Student>& students) {
         cout << "Trang " << (currentPage + 1) << "/" << totalPages 
              << " - Tong so: " << students.size() << " sinh vien";
         
-        // Vẽ bảng cao hơn để chứa đủ dữ liệu
+        // Vẽ bảng
         int tableX = 8;
         int tableY = 6;
         int tableWidth = 80;
-        int tableHeight = RECORDS_PER_PAGE + 4; // TĂNG CHIỀU CAO TỪ +3 LÊN +4
+        int tableHeight = RECORDS_PER_PAGE + 4;
         
         drawTableBorder(tableX, tableY, tableWidth, tableHeight);
         
@@ -773,21 +680,22 @@ void printStudents(const vector<Student>& students) {
             printStudentRow(tableX, tableY + 3 + rowIndex, students[i], highlight);
         }
         
-        // Hướng dẫn sử dụng DỊCH CHUYỂN XUỐNG ĐỂ TRÁNH BỊ CHE
+        // Hướng dẫn sử dụng CẬP NHẬT
         setColor(LIGHTGREEN);
-        gotoxy(12, tableY + tableHeight + 1);
-        cout << "↑↓: Di chuyển  │  ←→: Chuyển trang  │  Enter: Xem chi tiet  │  ESC: Thoat";
+        gotoxy(5, tableY + tableHeight + 1);
+        cout << "↑↓: Di chuyển  │  ←→: Chuyển trang  │  Enter: Menu Sửa/Xóa  │  ESC: Thoát";
         
-        // Thanh trạng thái DỊCH CHUYỂN XUỐNG
+        // Thanh trạng thái
         setColor(LIGHTMAGENTA);
         gotoxy(15, tableY + tableHeight + 3);
         if(selectedRow < endIndex - startIndex) {
             const Student& selected = students[startIndex + selectedRow];
-            cout << "Chi tiet: " << selected.hoTen.substr(0, 20) << " - " 
-                 << selected.maSV << " - Lop: " << selected.maLop;
+            cout << "Đang chọn: " << selected.hoTen.substr(0, 20) << " - " 
+                 << selected.maSV << " - Lớp: " << selected.maLop;
         }
         
-        // Xử lý phím (giữ nguyên)
+        // Sửa lại phần xử lý phím trong hàm printStudents
+        // Xử lý phím
         key = _getch();
         
         if(key == 224) {
@@ -824,7 +732,45 @@ void printStudents(const vector<Student>& students) {
                     break;
             }
         } else if(key == KEY_ENTER) {
-            showStudentDetail(students[startIndex + selectedRow]);
+            // HIỂN THỊ MENU CON SỬA/XÓA KHI NHẤN ENTER
+            if(selectedRow < endIndex - startIndex) {
+                int studentIndex = startIndex + selectedRow;
+                int action = showEditDeleteMenu(students[studentIndex]);
+                
+                if(action == 1) {
+                    // Sửa sinh viên
+                    editStudentInPlace(students, studentIndex);
+                    saveToFile(students); // Lưu sau khi sửa
+                    
+                    // Cập nhật lại totalPages nếu cần
+                    totalPages = (students.size() + RECORDS_PER_PAGE - 1) / RECORDS_PER_PAGE;
+                } else if(action == 2) {
+                    // Xóa sinh viên
+                    if(confirmDelete(students[studentIndex])) {
+                        students.erase(students.begin() + studentIndex);
+                        saveToFile(students); // Lưu sau khi xóa
+                        
+                        // Cập nhật lại các chỉ số
+                        totalPages = (students.size() + RECORDS_PER_PAGE - 1) / RECORDS_PER_PAGE;
+                        if(students.empty()) return; // Nếu danh sách rỗng thì thoát
+                        
+                        // Điều chỉnh selectedRow và currentPage
+                        if(selectedRow >= min(RECORDS_PER_PAGE, (int)students.size() - startIndex)) {
+                            if(selectedRow > 0) {
+                                selectedRow--;
+                            } else if(currentPage > 0) {
+                                currentPage--;
+                                selectedRow = 0;
+                            }
+                        }
+                        
+                        // Đảm bảo currentPage không vượt quá
+                        if(currentPage >= totalPages && totalPages > 0) {
+                            currentPage = totalPages - 1;
+                        }
+                    }
+                }
+            }
         } else if(key == KEY_ESC) {
             break;
         }
@@ -1172,7 +1118,7 @@ void displaySearchResults(const vector<Student>& results, const string& keyword)
         
         setColor(LIGHTGREEN);
         gotoxy(12, tableY + tableHeight + 1);
-        cout << "↑↓: Di chuyển  │  ←→: Chuyển trang  │  Enter: Chi tiet  │  ESC: Thoat";
+        cout << "↑↓: Di chuyển  │  ←→: Chuyển trang  │  ESC: Thoat";
         
         // ... phần xử lý phím giữ nguyên
         key = _getch();
@@ -1208,8 +1154,6 @@ void displaySearchResults(const vector<Student>& results, const string& keyword)
                     }
                     break;
             }
-        } else if(key == KEY_ENTER) {
-            showStudentDetail(results[startIndex + selectedRow]);
         } else if(key == KEY_ESC) {
             break;
         }
@@ -1370,65 +1314,255 @@ void printStudentRow(int x, int y, const Student& sv, bool highlight) {
     setColor(LIGHTGRAY);
 }
 
-// Hàm hiển thị chi tiết một sinh viên
-void showStudentDetail(const Student& sv) {
-    clearScreen();
+// Hàm hiển thị menu con sửa/xóa khi nhấn Enter
+int showEditDeleteMenu(const Student& sv) {
+    string menuItems[] = {"Sửa thông tin", "Xóa sinh viên", "Hủy"};
+    int selected = 0;
+    int key;
     
+    // Vị trí menu con (góc phải màn hình)
+    int menuX = 55;
+    int menuY = 8;
+    
+    while(true) {
+        // Vẽ khung menu con
+        setColor(LIGHTCYAN);
+        gotoxy(menuX, menuY);
+        cout << "";
+        
+        setColor(LIGHTCYAN);
+        gotoxy(menuX, menuY + 1);
+        cout << "┌─────────────────┐";
+        
+        // Hiển thị các lựa chọn
+        for(int i = 0; i < 3; i++) {
+            gotoxy(menuX, menuY + 2 + i);
+            if(i == selected) {
+                if(i == 0) {
+                    setColor(BLACK);
+                    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
+                BACKGROUND_RED | BACKGROUND_INTENSITY);
+                } else {
+                    setColor(BLACK);
+                    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
+                BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+                }
+                cout << "│>" << left << setw(14) << menuItems[i] << "   │";
+            } else {
+                setColor(LIGHTCYAN);
+                cout << "│ " << left << setw(15) << menuItems[i] << "   │";
+            }
+        }
+        
+        setColor(LIGHTCYAN);
+        gotoxy(menuX, menuY + 5);
+        cout << "└─────────────────┘";
+        
+        // Hướng dẫn
+        setColor(LIGHTGREEN);
+        gotoxy(menuX, menuY + 7);
+        cout << "↑↓: Chọn, Enter: OK";
+        
+        // Đọc phím
+        key = _getch();
+        
+        if(key == 224) {
+            key = _getch();
+            switch(key) {
+                case KEY_UP:
+                    selected = (selected - 1 + 3) % 3;
+                    break;
+                case KEY_DOWN:
+                    selected = (selected + 1) % 3;
+                    break;
+            }
+        } else if(key == KEY_ENTER) {
+            // Xóa menu con
+            for(int i = 0; i < 13; i++) {
+                gotoxy(menuX, menuY + i);
+                cout << "                    ";
+            }
+            setColor(LIGHTGRAY);
+            return selected + 1; // 1: Sửa, 2: Xóa, 3: Hủy
+        } else if(key == KEY_ESC) {
+            // Xóa menu con
+            for(int i = 0; i < 13; i++) {
+                gotoxy(menuX, menuY + i);
+                cout << "                    ";
+            }
+            setColor(LIGHTGRAY);
+            return 0; // Hủy
+        }
+    }
+}
+
+// Hàm sửa sinh viên tại vị trí cụ thể
+void editStudentInPlace(vector<Student>& students, int index) {
+    if(index < 0 || index >= students.size()) return;
+    
+    Student& sv = students[index];
+    
+    clearScreen();
     setColor(LIGHTCYAN);
     gotoxy(25, 2);
     cout << "══════════════════════════════════════════";
     gotoxy(25, 3);
-    cout << "           CHI TIET SINH VIEN             ";
+    cout << "           SỬA THÔNG TIN SINH VIÊN         ";
     gotoxy(25, 4);
     cout << "══════════════════════════════════════════";
     
-    // Vẽ khung thông tin
-    int x = 20, y = 7;
-    drawTableBorder(x, y, 50, 12);
+    setColor(YELLOW);
+    gotoxy(20, 6);
+    cout << "Sinh viên hiện tại: " << sv.hoTen << " (" << sv.maSV << ")";
+    
+    // Hướng dẫn
+    setColor(LIGHTGREEN);
+    gotoxy(15, 8);
+    cout << "Nhấn Enter để giữ nguyên giá trị, ESC để hủy thay đổi";
+    
+    // Sửa từng trường với giá trị mặc định là giá trị hiện tại
+    string newMaLop = inputTextBox("Mã lớp:", 20, 10, 25, sv.maLop);
+    if(newMaLop != sv.maLop && !newMaLop.empty()) {
+        sv.maLop = newMaLop;
+    }
+    
+    // Kiểm tra mã sinh viên (8 số)
+    bool validMaSV = true;
+    string newMaSV;
+    do {
+        newMaSV = inputTextBox("Mã sinh viên (8 số):", 20, 14, 25, sv.maSV);
+        if(newMaSV == sv.maSV || newMaSV.empty()) {
+            break; // Giữ nguyên
+        }
+        
+        validMaSV = (newMaSV.length() == 8 && 
+                    all_of(newMaSV.begin(), newMaSV.end(), ::isdigit));
+        
+        if(!validMaSV) {
+            setColor(LIGHTRED);
+            gotoxy(20, 21);
+            cout << "Mã sinh viên phải là 8 chữ số! Nhấn Enter để nhập lại...";
+            _getch();
+            gotoxy(20, 21);
+            cout << string(55, ' ');
+        }
+    } while(!validMaSV);
+    
+    if(validMaSV && newMaSV != sv.maSV && !newMaSV.empty()) {
+        sv.maSV = newMaSV;
+    }
+    
+    string newHoTen = inputTextBox("Họ và tên:", 20, 18, 35, sv.hoTen);
+    if(newHoTen != sv.hoTen && !newHoTen.empty()) {
+        sv.hoTen = formatName(newHoTen);
+    }
+    
+    // Ngày sinh
+    char dateBuffer[20];
+    sprintf(dateBuffer, "%02d/%02d/%04d", sv.ngaySinh.day, sv.ngaySinh.month, sv.ngaySinh.year);
+    string dateInput = inputTextBox("Ngày sinh (dd/mm/yyyy):", 20, 22, 20, dateBuffer);
+    
+    if(dateInput != dateBuffer && !dateInput.empty()) {
+        Date newDate;
+        if(sscanf(dateInput.c_str(), "%d/%d/%d", &newDate.day, &newDate.month, &newDate.year) == 3) {
+            if(isValidDate(newDate)) {
+                sv.ngaySinh = newDate;
+            }
+        }
+    }
+    
+    // Điểm
+    string scoreStr = to_string(sv.diemTBTL);
+    scoreStr = scoreStr.substr(0, scoreStr.find_last_not_of('0') + 1);
+    if(scoreStr.back() == '.') scoreStr.pop_back();
+    
+    string newScoreStr = inputTextBox("Điểm TB (0.0-10.0):", 20, 26, 15, scoreStr);
+    
+    if(newScoreStr != scoreStr && !newScoreStr.empty()) {
+        try {
+            float newScore = stof(newScoreStr);
+            if(newScore >= 0.0 && newScore <= 10.0) {
+                sv.diemTBTL = newScore;
+            }
+        } catch(...) {
+            // Giữ nguyên giá trị cũ nếu không hợp lệ
+        }
+    }
+    
+    // Thông báo thành công
+    setColor(LIGHTGREEN);
+    gotoxy(25, 30);
+    cout << "CẬP NHẬT THÀNH CÔNG!";
+    gotoxy(25, 31);
+    cout << "Nhấn phím bất kỳ để tiếp tục...";
+    _getch();
+}
+
+// Hàm xác nhận xóa sinh viên - Đơn giản hóa
+bool confirmDelete(const Student& sv) {
+    clearScreen();
+    
+    setColor(LIGHTRED);
+    gotoxy(30, 10);
+    cout << "══════════════════════════════════════";
+    gotoxy(30, 11);
+    cout << "         XÁC NHẬN XÓA SINH VIÊN       ";
+    gotoxy(30, 12);
+    cout << "══════════════════════════════════════";
     
     setColor(YELLOW);
-    gotoxy(x + 2, y + 1);
-    cout << "Thong tin chi tiet:";
+    gotoxy(25, 15);
+    cout << "Bạn có chắc chắn muốn xóa sinh viên này không?";
     
-    setColor(WHITE);
-    gotoxy(x + 2, y + 3);
-    cout << "Ma lop:              " << sv.maLop;
+    string options[] = {"CÓ - Xóa sinh viên", "KHÔNG - Hủy bỏ"};
+    int selected = 1; // Mặc định chọn "KHÔNG" (an toàn hơn)
+    int key;
     
-    gotoxy(x + 2, y + 4);
-    cout << "Ma sinh vien:        " << sv.maSV;
-    
-    gotoxy(x + 2, y + 5);
-    cout << "Ho va ten:           " << sv.hoTen;
-    
-    gotoxy(x + 2, y + 6);
-    cout << "Ngay sinh:           " << setfill('0') << setw(2) << sv.ngaySinh.day 
-         << "/" << setw(2) << sv.ngaySinh.month 
-         << "/" << sv.ngaySinh.year;
-    
-    gotoxy(x + 2, y + 7);
-    cout << "Diem TB tich luy:    " << fixed << setprecision(2) << sv.diemTBTL;
-    
-    // Xếp loại
-    string xepLoai;
-    if(sv.diemTBTL >= 9.0) xepLoai = "Xuat sac";
-    else if(sv.diemTBTL >= 8.0) xepLoai = "Gioi";
-    else if(sv.diemTBTL >= 6.5) xepLoai = "Kha";
-    else if(sv.diemTBTL >= 5.0) xepLoai = "Trung binh";
-    else xepLoai = "Yeu";
-    
-    gotoxy(x + 2, y + 8);
-    cout << "Xep loai:            ";
-    
-    // Màu sắc theo xếp loại
-    if(sv.diemTBTL >= 8.0) setColor(LIGHTGREEN);
-    else if(sv.diemTBTL >= 6.5) setColor(YELLOW);
-    else if(sv.diemTBTL >= 5.0) setColor(LIGHTGRAY);
-    else setColor(LIGHTRED);
-    
-    cout << xepLoai;
-    
-    setColor(LIGHTGREEN);
-    gotoxy(30, y + 15);
-    cout << "Nhan phim bat ky de quay lai...";
-    _getch();
+    while(true) {
+        // Hiển thị 2 lựa chọn
+        for(int i = 0; i < 2; i++) {
+            gotoxy(30, 18 + i);
+            if(i == selected) {
+                if(i == 0) {
+                    // Nút XÓA - màu đỏ khi được chọn
+                    setColor(BLACK);
+                    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
+                                          BACKGROUND_RED | BACKGROUND_INTENSITY);
+                } else {
+                    // Nút HỦY - màu xanh khi được chọn
+                    setColor(BLACK);
+                    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
+                                          BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+                }
+                cout << ">> " << options[i] << " <<";
+            } else {
+                setColor(LIGHTGRAY);
+                cout << "   " << options[i] << "   ";
+            }
+        }
+        
+        // Hướng dẫn sử dụng
+        setColor(LIGHTGREEN);
+        gotoxy(30, 22);
+        cout << "↑↓: Chọn, Enter: Xác nhận, ESC: Hủy";
+        
+        // Đọc phím
+        key = _getch();
+        
+        if(key == 224) {
+            key = _getch();
+            switch(key) {
+                case KEY_UP:
+                case KEY_DOWN:
+                    selected = 1 - selected; // Chuyển đổi giữa 0 và 1
+                    break;
+            }
+        } else if(key == KEY_ENTER) {
+            setColor(LIGHTGRAY);
+            return (selected == 0); // True nếu chọn "CÓ" (index 0)
+        } else if(key == KEY_ESC) {
+            setColor(LIGHTGRAY);
+            return false; // Hủy bỏ
+        }
+    }
 }
