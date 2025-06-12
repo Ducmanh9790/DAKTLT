@@ -89,6 +89,9 @@ void drawStatBar(string label, int count, int total, int x, int y, int color);
 int showEditDeleteMenu(const Student& sv);
 void editStudentInPlace(vector<Student>& students, int index);
 bool confirmDelete(const Student& sv);
+int showStatisticsMenu();
+void reportStudentsByClass(const vector<Student>& students);
+void reportGradesByClass(const vector<Student>& students);
 
 void setColor(int color) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
@@ -109,14 +112,14 @@ void clearScreen() {
 int showAdvancedMenu() {
     string menuItems[] = {
         "1. Them moi ho so sinh vien",
-        "2. In danh sach sinh vien",      // Đẩy lên từ chức năng 3
-        "3. Sap xep danh sach",           // Đẩy lên từ chức năng 4
-        "4. Tim kiem sinh vien",          // Đẩy lên từ chức năng 5
-        "5. Thong ke bao cao",            // Đẩy lên từ chức năng 6
-        "6. Thoat chuong trinh"           // Đẩy lên từ chức năng 7
+        "2. In danh sach sinh vien",     
+        "3. Sap xep danh sach",           
+        "4. Tim kiem sinh vien",          
+        "5. Thong ke bao cao",           
+        "6. Thoat chuong trinh"           
     };
     
-    int menuSize = 6; // Giảm từ 7 xuống 6
+    int menuSize = 6;
     int selected = 0;
     int key;
     
@@ -177,7 +180,7 @@ int showAdvancedMenu() {
     }
 }
 
-// Menu con cho sắp xếp - Bỏ phần xác nhận
+// Menu con cho sắp xếp 
 int showSortMenu() {
     string sortOptions[] = {"Ma SV", "Ho Ten", "Ngay Sinh", "Diem TB", "Ma Lop"};
     string algorithms[] = {"Selection Sort", "Bubble Sort", "Insertion Sort", "Quick Sort"};
@@ -892,74 +895,25 @@ void printStudents(vector<Student>& students) {
 
 // Cập nhật hàm statisticsMenu với giao diện nâng cao
 void statisticsMenu(const vector<Student>& students) {
-    if(students.empty()) {
-        clearScreen();
-        setColor(LIGHTRED);
-        gotoxy(30, 10);
-        cout << "KHONG CO DU LIEU DE THONG KE!";
-        gotoxy(30, 11);
-        cout << "Nhan phim bat ky de quay lai...";
-        _getch();
-        return;
+    int choice = showStatisticsMenu();
+    
+    switch(choice) {
+        case 1:
+            reportStudentsByClass(students);
+            break;
+        case 2:
+            reportGradesByClass(students);
+            break;
+        case 0:
+            // Thoát - không làm gì
+            break;
+        default:
+            setColor(LIGHTRED);
+            clearScreen();
+            gotoxy(30, 10);
+            cout << "Lựa chọn không hợp lệ!";
+            _getch();
     }
-    
-    clearScreen();
-    
-    setColor(LIGHTCYAN);
-    gotoxy(25, 1);
-    cout << "══════════════════════════════════════════";
-    gotoxy(25, 2);
-    cout << "           THONG KE BAO CAO               ";
-    gotoxy(25, 3);
-    cout << "══════════════════════════════════════════";
-    
-    // Thống kê theo lớp
-    map<string, int> classList;
-    for(const auto& sv : students) {
-        classList[sv.maLop]++;
-    }
-    
-    setColor(YELLOW);
-    gotoxy(15, 5);
-    cout << "THONG KE SO LUONG SINH VIEN THEO LOP:";
-    
-    int y = 7;
-    setColor(WHITE);
-    for(const auto& pair : classList) {
-        gotoxy(20, y);
-        cout << "Lop " << left << setw(10) << pair.first << ": " 
-             << right << setw(3) << pair.second << " sinh vien";
-        y++;
-    }
-    
-    // Vẽ biểu đồ phần trăm xếp loại
-    y += 2;
-    setColor(YELLOW);
-    gotoxy(15, y);
-    cout << "THONG KE XEP LOAI HOC TAP:";
-    y += 2;
-    
-    int xuatSac = 0, gioi = 0, kha = 0, trungBinh = 0, yeu = 0;
-    
-    for(const auto& sv : students) {
-        if(sv.diemTBTL >= 9.0) xuatSac++;
-        else if(sv.diemTBTL >= 8.0) gioi++;
-        else if(sv.diemTBTL >= 6.5) kha++;
-        else if(sv.diemTBTL >= 5.0) trungBinh++;
-        else yeu++;
-    }
-    
-    // Vẽ thanh biểu đồ
-    drawStatBar("Xuat sac (>=9.0)", xuatSac, students.size(), 20, y, LIGHTGREEN);
-    drawStatBar("Gioi (8.0-8.9)", gioi, students.size(), 20, y + 2, GREEN);
-    drawStatBar("Kha (6.5-7.9)", kha, students.size(), 20, y + 4, YELLOW);
-    drawStatBar("TB (5.0-6.4)", trungBinh, students.size(), 20, y + 6, LIGHTGRAY);
-    drawStatBar("Yeu (<5.0)", yeu, students.size(), 20, y + 8, LIGHTRED);
-    
-    setColor(LIGHTGREEN);
-    gotoxy(30, y + 12);
-    cout << "Nhan phim bat ky de tiep tuc...";
-    _getch();
 }
 
 // Hàm vẽ thanh biểu đồ thống kê
@@ -1848,4 +1802,244 @@ bool confirmDelete(const Student& sv) {
             return false; // Hủy bỏ
         }
     }
+}
+
+// Menu con cho thống kê - Theo yêu cầu instruction.md
+int showStatisticsMenu() {
+    string statisticsOptions[] = {
+        "Bao cao so luong SV theo lop", 
+        "Ty le phan loai ket qua hoc tap"
+    };
+    
+    int selected = 0;
+    int key;
+    
+    while(true) {
+        clearScreen();
+        setColor(LIGHTCYAN);
+        gotoxy(20, 2);
+        cout << "════════════════════════════════════════════";
+        gotoxy(20, 3);
+        cout << "              MENU THONG KE                 ";
+        gotoxy(20, 4);
+        cout << "════════════════════════════════════════════";
+        
+        setColor(YELLOW);
+        gotoxy(15, 6);
+        cout << "Chon loai bao cao thong ke:";
+        
+        // Menu dọc cho loại thống kê
+        for(int i = 0; i < 2; i++) {
+            gotoxy(20, 8 + i);
+            if(i == selected) {
+                setColor(BLACK);
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
+                                      BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+                cout << ">> " << left << setw(35) << statisticsOptions[i] << " <<";
+            } else {
+                setColor(LIGHTGRAY);
+                cout << "   " << left << setw(35) << statisticsOptions[i] << "   ";
+            }
+        }
+        
+        // Hướng dẫn sử dụng
+        setColor(LIGHTGREEN);
+        gotoxy(15, 12);
+        cout << "↑↓: Chọn loại báo cáo  │  Enter: Thực hiện  │  ESC: Quay lại";
+        
+        setColor(LIGHTMAGENTA);
+        gotoxy(15, 14);
+        cout << "Loại báo cáo đã chọn: " << statisticsOptions[selected];
+        
+        // Đọc phím
+        key = _getch();
+        
+        if(key == 224) { // Phím đặc biệt
+            key = _getch();
+            switch(key) {
+                case KEY_UP:
+                    selected = (selected - 1 + 2) % 2;
+                    break;
+                case KEY_DOWN:
+                    selected = (selected + 1) % 2;
+                    break;
+            }
+        } else if(key == KEY_ENTER) {
+            setColor(LIGHTGRAY);
+            return selected + 1; // Trả về 1 hoặc 2
+        } else if(key == KEY_ESC) {
+            setColor(LIGHTGRAY);
+            return 0; // Thoát
+        }
+    }
+}
+
+// Hàm thống kê số lượng sinh viên theo lớp
+void reportStudentsByClass(const vector<Student>& students) {
+    if(students.empty()) {
+        clearScreen();
+        setColor(LIGHTRED);
+        gotoxy(30, 10);
+        cout << "DANH SÁCH SINH VIÊN TRỐNG!";
+        gotoxy(30, 11);
+        cout << "Nhấn phím bất kỳ để tiếp tục...";
+        _getch();
+        return;
+    }
+    
+    // Đếm số lượng sinh viên theo lớp
+    map<string, int> classCount;
+    for(const auto& sv : students) {
+        classCount[sv.maLop]++;
+    }
+    
+    clearScreen();
+    setColor(LIGHTCYAN);
+    gotoxy(25, 2);
+    cout << "══════════════════════════════════════════════";
+    gotoxy(25, 3);
+    cout << "        BÁO CÁO SỐ LƯỢNG SINH VIÊN THEO LỚP   ";
+    gotoxy(25, 4);
+    cout << "══════════════════════════════════════════════";
+    
+    setColor(YELLOW);
+    gotoxy(30, 6);
+    cout << "Tổng số sinh viên: " << students.size();
+    gotoxy(30, 7);
+    cout << "Số lớp: " << classCount.size();
+    
+    // Vẽ bảng thống kê
+    setColor(LIGHTCYAN);
+    gotoxy(25, 9);
+    cout << "┌─────────────────┬──────────────┬─────────────┐";
+    gotoxy(25, 10);
+    cout << "│     MÃ LỚP      │  SỐ LƯỢNG    │   TỶ LỆ (%) │";
+    gotoxy(25, 11);
+    cout << "├─────────────────┼──────────────┼─────────────┤";
+    
+    int row = 12;
+    for(const auto& pair : classCount) {
+        gotoxy(25, row);
+        setColor(LIGHTCYAN);
+        cout << "│";
+        
+        setColor(LIGHTCYAN);
+        cout << " " << left << setw(15) << pair.first << " │";
+        
+        setColor(LIGHTCYAN);
+        cout << "     " << right << setw(3) << pair.second << "      │";
+        
+        setColor(LIGHTCYAN);
+        float percentage = (float)pair.second * 100 / students.size();
+        cout << "    " << fixed << setprecision(1) << setw(5) << percentage << "    │";
+        
+        row++;
+        
+        if(row < 20) { // Giới hạn hiển thị
+            setColor(LIGHTCYAN);
+            gotoxy(25, row);
+            cout << "├─────────────────┼──────────────┼─────────────┤";
+            row++;
+        }
+    }
+    
+    setColor(LIGHTCYAN);
+    gotoxy(25, row);
+    cout << "└─────────────────┴──────────────┴─────────────┘";
+    
+    setColor(LIGHTGREEN);
+    gotoxy(30, row + 3);
+    cout << "Nhấn phím bất kỳ để tiếp tục...";
+    _getch();
+}
+
+// Hàm thống kê tỷ lệ phân loại kết quả học tập theo lớp
+void reportGradesByClass(const vector<Student>& students) {
+    if(students.empty()) {
+        clearScreen();
+        setColor(LIGHTRED);
+        gotoxy(30, 10);
+        cout << "DANH SÁCH SINH VIÊN TRỐNG!";
+        gotoxy(30, 11);
+        cout << "Nhấn phím bất kỳ để tiếp tục...";
+        _getch();
+        return;
+    }
+    
+    // Nhóm sinh viên theo lớp và phân loại
+    map<string, map<string, int>> classGrades;
+    
+    for(const auto& sv : students) {
+        string grade;
+        if(sv.diemTBTL >= 9.0) grade = "Xuất sắc";
+        else if(sv.diemTBTL >= 8.0) grade = "Giỏi";
+        else if(sv.diemTBTL >= 6.5) grade = "Khá";
+        else if(sv.diemTBTL >= 5.0) grade = "Trung bình";
+        else grade = "Yếu";
+        
+        classGrades[sv.maLop][grade]++;
+    }
+    
+    clearScreen();
+    setColor(LIGHTCYAN);
+    gotoxy(20, 2);
+    cout << "═══════════════════════════════════════════════════════════";
+    gotoxy(20, 3);
+    cout << "     BÁO CÁO TỶ LỆ PHÂN LOẠI KẾT QUẢ HỌC TẬP THEO LỚP     ";
+    gotoxy(20, 4);
+    cout << "═══════════════════════════════════════════════════════════";
+    
+    int startY = 6;
+    for(const auto& classData : classGrades) {
+        string className = classData.first;
+        const auto& grades = classData.second;
+        
+        // Tính tổng sinh viên trong lớp
+        int totalStudents = 0;
+        for(const auto& gradeData : grades) {
+            totalStudents += gradeData.second;
+        }
+        
+        setColor(YELLOW);
+        gotoxy(25, startY);
+        cout << "Lớp: " << className << " (Tổng: " << totalStudents << " sinh viên)";
+        
+        // Hiển thị phân loại
+        string gradeNames[] = {"Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"};
+        int colors[] = {LIGHTGREEN, GREEN, YELLOW, LIGHTGRAY, LIGHTRED};
+        
+        for(int i = 0; i < 5; i++) {
+            int count = grades.count(gradeNames[i]) ? grades.at(gradeNames[i]) : 0;
+            float percentage = totalStudents > 0 ? (float)count * 100 / totalStudents : 0;
+            
+            gotoxy(30, startY + 1 + i);
+            setColor(colors[i]);
+            cout << "- " << left << setw(12) << gradeNames[i] << ": " 
+                 << right << setw(2) << count << " SV (" 
+                 << fixed << setprecision(1) << setw(5) << percentage << "%)";
+        }
+        
+        startY += 7;
+        
+        if(startY > 18) { // Nếu quá nhiều lớp, phân trang
+            setColor(LIGHTGREEN);
+            gotoxy(25, startY);
+            cout << "Nhấn phím bất kỳ để xem tiếp...";
+            _getch();
+            clearScreen();
+            setColor(LIGHTCYAN);
+            gotoxy(20, 2);
+            cout << "═══════════════════════════════════════════════════════════";
+            gotoxy(20, 3);
+            cout << "     BÁO CÁO TỶ LỆ PHÂN LOẠI KẾT QUẢ HỌC TẬP THEO LỚP     ";
+            gotoxy(20, 4);
+            cout << "═══════════════════════════════════════════════════════════";
+            startY = 6;
+        }
+    }
+    
+    /*setColor(LIGHTGREEN);
+    gotoxy(25, startY + 1);
+    cout << "Nhấn phím bất kỳ để tiếp tục...";
+    _getch(); */
 }
