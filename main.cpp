@@ -79,7 +79,6 @@ void searchStudents(const vector<Student>& students, int choice);
 string inputTextBox(string prompt, int x, int y, int width, string defaultValue = "");
 void drawTextBox(int x, int y, int width, string content, int cursorPos, bool active);
 Date inputDateTextBox(string prompt, int x, int y);
-// Thêm vào phần khai báo hàm (sau dòng 76):
 void displaySearchResults(const vector<Student>& results, const string& keyword);
 float inputFloatTextBox(string prompt, int x, int y, float min, float max);
 void drawTableBorder(int x, int y, int width, int height);
@@ -309,47 +308,129 @@ int showSortMenu() {
     }
 }
 
-// Menu con cho tìm kiếm
+// Menu con cho tìm kiếm - Menu dọc với submenu thuật toán
 int showSearchMenu() {
-    string searchOptions[] = {"Ma sinh vien", "Ho va ten", "Ma lop"};
+    string searchOptions[] = {"Ma SV", "Ho Ten", "Ma Lop", "Ngay Sinh", "Diem TB"};
+    string algorithms[] = {"Tim kiem tuan tu", "Tim kiem nhi phan"};
+    
     int selected = 0;
+    int algSelected = 0;
+    bool showAlgorithms = false;
     int key;
     
     while(true) {
         clearScreen();
         setColor(LIGHTCYAN);
-        gotoxy(25, 3);
-        cout << "=== MENU TIM KIEM ===";
+        gotoxy(20, 2);
+        cout << "════════════════════════════════════════════";
+        gotoxy(20, 3);
+        cout << "              MENU TIM KIEM                 ";
+        gotoxy(20, 4);
+        cout << "════════════════════════════════════════════";
         
-        for(int i = 0; i < 3; i++) {
-            gotoxy(25, 6 + i);
+        setColor(YELLOW);
+        gotoxy(15, 6);
+        cout << "Chon tieu chi tim kiem:";
+        
+        // Menu dọc cho tiêu chí tìm kiếm
+        for(int i = 0; i < 5; i++) {
+            gotoxy(20, 8 + i);
             if(i == selected) {
                 setColor(BLACK);
                 SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
-                                      BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY);
-                cout << ">> " << searchOptions[i] << " <<";
+                                      BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+                cout << ">> " << left << setw(12) << searchOptions[i] << " <<";
             } else {
                 setColor(LIGHTGRAY);
-                cout << "   " << searchOptions[i] << "   ";
+                cout << "   " << left << setw(12) << searchOptions[i] << "   ";
             }
         }
         
+        // Hiển thị menu thuật toán nếu được kích hoạt
+        if(showAlgorithms) {
+            setColor(LIGHTCYAN);
+            gotoxy(45, 6);
+            cout << "Chon thuat toan:";
+            for(int i = 0; i < 2; i++) {
+                gotoxy(45, 8 + i);
+                if(i == algSelected) {
+                    setColor(BLACK);
+                    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
+                                          BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+                    cout << ">> " << left << setw(13) << algorithms[i] ;
+                } else {
+                    setColor(LIGHTCYAN);
+                    cout << "  " << left << setw(14) << algorithms[i] ;
+                }
+            }
+        }
+        
+        // Hướng dẫn sử dụng
+        setColor(LIGHTGREEN);
+        gotoxy(15, 15);
+        if(showAlgorithms) {
+            cout << "↑↓: Chọn thuật toán  │  ←: Đóng menu thuật toán  │  Enter: Thực hiện";
+        } else {
+            cout << "↑↓: Chọn tiêu chí  │  →: Mở menu thuật toán  │  ESC: Quay lại";
+        }
+        
+        setColor(LIGHTMAGENTA);
+        gotoxy(15, 17);
+        cout << "Tiêu chí đã chọn: " << searchOptions[selected];
+        if(showAlgorithms) {
+            gotoxy(15, 18);
+            cout << "Thuật toán đã chọn: " << algorithms[algSelected];
+        }
+        
+        // Đọc phím
         key = _getch();
-        if(key == 224) {
+        
+        if(key == 224) { // Phím đặc biệt
             key = _getch();
             switch(key) {
                 case KEY_UP:
-                    selected = (selected - 1 + 3) % 3;
+                    if(showAlgorithms) {
+                        algSelected = (algSelected - 1 + 2) % 2;
+                    } else {
+                        selected = (selected - 1 + 5) % 5;
+                    }
                     break;
                 case KEY_DOWN:
-                    selected = (selected + 1) % 3;
+                    if(showAlgorithms) {
+                        algSelected = (algSelected + 1) % 2;
+                    } else {
+                        selected = (selected + 1) % 5;
+                    }
+                    break;
+                case KEY_RIGHT:
+                    if(!showAlgorithms) {
+                        showAlgorithms = true;
+                        algSelected = 0; // Reset về thuật toán đầu tiên
+                    }
+                    break;
+                case KEY_LEFT:
+                    if(showAlgorithms) {
+                        showAlgorithms = false;
+                    }
                     break;
             }
         } else if(key == KEY_ENTER) {
-            setColor(LIGHTGRAY);
-            return selected + 1;
+            if(showAlgorithms) {
+                // Trả về giá trị đã encode: tiêu chí (1-5) * 10 + thuật toán (1-2)
+                setColor(LIGHTGRAY);
+                return (selected + 1) * 10 + (algSelected + 1);
+            } else {
+                // Nếu chưa chọn thuật toán, tự động mở menu thuật toán
+                showAlgorithms = true;
+                algSelected = 0;
+            }
         } else if(key == KEY_ESC) {
-            return 0;
+            if(showAlgorithms) {
+                showAlgorithms = false;
+            } else {
+                setColor(LIGHTGRAY);
+                return 0; // Thoát
+            }
         }
     }
 }
@@ -1068,51 +1149,211 @@ void sortStudents(vector<Student>& students, int choice) {
     printStudents(students);
 }
 
-// Cập nhật hàm searchStudents với giao diện nâng cao
-void searchStudents(const vector<Student>& students, int choice) {
-    string keyword;
+// Sửa lại hàm searchStudents - Thêm khai báo sortedStudents
+void searchStudents(const vector<Student>& students, int encodedChoice) {
+    if(encodedChoice == 0) return;
+    
+    // Decode: tiêu chí = choice / 10, thuật toán = choice % 10
+    int criteria = encodedChoice / 10;
+    int algorithm = encodedChoice % 10;
+    
+    string criteriaNames[] = {"", "Mã SV", "Họ Tên", "Mã Lớp", "Ngày Sinh", "Điểm TB"};
+    string algorithmNames[] = {"", "Tìm kiếm tuần tự", "Tìm kiếm nhị phân"};
     
     clearScreen();
     setColor(LIGHTCYAN);
-    gotoxy(25, 3);
-    cout << "═══ TIM KIEM SINH VIEN ═══";
+    gotoxy(20, 2);
+    cout << "══════════════════════════════════════════════";
+    gotoxy(20, 3);
+    cout << "              TIM KIEM SINH VIEN              ";
+    gotoxy(20, 4);
+    cout << "══════════════════════════════════════════════";
     
     setColor(YELLOW);
-    gotoxy(15, 5);
-    cout << "Nhap tu khoa tim kiem: ";
+    gotoxy(15, 6);
+    cout << "Tiêu chí: " << criteriaNames[criteria];
+    gotoxy(15, 7);
+    cout << "Thuật toán: " << algorithmNames[algorithm];
     
-    cin.ignore();
-    setColor(WHITE);
-    getline(cin, keyword);
+    // DÙNG TEXTBOX THAY VÌ getline()
+    string keyword = inputTextBox("Nhập từ khóa tìm kiếm:", 15, 9, 30);
+    
+    if(keyword.empty()) return; // Nếu người dùng nhấn ESC hoặc không nhập gì
     
     vector<Student> result;
     
-    for(const auto& sv : students) {
-        bool found = false;
-        switch(choice) {
-            case 1:
-                if(sv.maSV.find(keyword) != string::npos) found = true;
+    // THÊM KHAI BÁO sortedStudents
+    vector<Student> sortedStudents = students;
+    
+    // Nếu chọn tìm kiếm nhị phân, cần sắp xếp trước
+    if(algorithm == 2) { // Tìm kiếm nhị phân
+        switch(criteria) {
+            case 1: // Mã SV
+                sort(sortedStudents.begin(), sortedStudents.end(), 
+                     [](const Student& a, const Student& b) {
+                         return a.maSV < b.maSV;
+                     });
                 break;
-            case 2:
-                if(sv.hoTen.find(keyword) != string::npos) found = true;
+            case 2: // Họ Tên
+                sort(sortedStudents.begin(), sortedStudents.end(), 
+                     [](const Student& a, const Student& b) {
+                         return a.hoTen < b.hoTen;
+                     });
                 break;
-            case 3:
-                if(sv.maLop.find(keyword) != string::npos) found = true;
+            case 3: // Mã Lớp
+                sort(sortedStudents.begin(), sortedStudents.end(), 
+                     [](const Student& a, const Student& b) {
+                         return a.maLop < b.maLop;
+                     });
+                break;
+            case 4: // Ngày Sinh
+                sort(sortedStudents.begin(), sortedStudents.end(), 
+                     [](const Student& a, const Student& b) {
+                         if(a.ngaySinh.year != b.ngaySinh.year)
+                             return a.ngaySinh.year < b.ngaySinh.year;
+                         if(a.ngaySinh.month != b.ngaySinh.month)
+                             return a.ngaySinh.month < b.ngaySinh.month;
+                         return a.ngaySinh.day < b.ngaySinh.day;
+                     });
+                break;
+            case 5: // Điểm TB
+                sort(sortedStudents.begin(), sortedStudents.end(), 
+                     [](const Student& a, const Student& b) {
+                         return a.diemTBTL < b.diemTBTL;
+                     });
                 break;
         }
-        if(found) result.push_back(sv);
+    }
+    
+    // Thực hiện tìm kiếm
+    if(algorithm == 1) { // Tìm kiếm tuần tự
+        for(const auto& sv : students) {
+            bool found = false;
+            switch(criteria) {
+                case 1: // Mã SV
+                    if(sv.maSV.find(keyword) != string::npos) found = true;
+                    break;
+                case 2: // Họ Tên
+                    if(sv.hoTen.find(keyword) != string::npos) found = true;
+                    break;
+                case 3: // Mã Lớp
+                    if(sv.maLop.find(keyword) != string::npos) found = true;
+                    break;
+                case 4: // Ngày Sinh
+                    {
+                        char dateStr[20];
+                        sprintf(dateStr, "%02d/%02d/%04d", sv.ngaySinh.day, sv.ngaySinh.month, sv.ngaySinh.year);
+                        if(string(dateStr).find(keyword) != string::npos) found = true;
+                    }
+                    break;
+                case 5: // Điểm TB
+                    {
+                        string scoreStr = to_string(sv.diemTBTL);
+                        if(scoreStr.find(keyword) != string::npos) found = true;
+                    }
+                    break;
+            }
+            if(found) result.push_back(sv);
+        }
+    } else { // Tìm kiếm nhị phân
+        // Tìm kiếm nhị phân cho exact match
+        int left = 0, right = sortedStudents.size() - 1;
+        bool found = false;
+        
+        while(left <= right) {
+            int mid = (left + right) / 2;
+            string compareValue;
+            
+            switch(criteria) {
+                case 1: compareValue = sortedStudents[mid].maSV; break;
+                case 2: compareValue = sortedStudents[mid].hoTen; break;
+                case 3: compareValue = sortedStudents[mid].maLop; break;
+                case 4: 
+                    {
+                        char dateStr[20];
+                        sprintf(dateStr, "%02d/%02d/%04d", 
+                               sortedStudents[mid].ngaySinh.day, 
+                               sortedStudents[mid].ngaySinh.month, 
+                               sortedStudents[mid].ngaySinh.year);
+                        compareValue = dateStr;
+                    }
+                    break;
+                case 5: compareValue = to_string(sortedStudents[mid].diemTBTL); break;
+            }
+            
+            if(compareValue == keyword) {
+                result.push_back(sortedStudents[mid]);
+                found = true;
+                
+                // Tìm thêm các phần tử giống nhau bên trái và phải
+                int leftIdx = mid - 1;
+                while(leftIdx >= 0) {
+                    string leftValue;
+                    switch(criteria) {
+                        case 1: leftValue = sortedStudents[leftIdx].maSV; break;
+                        case 2: leftValue = sortedStudents[leftIdx].hoTen; break;
+                        case 3: leftValue = sortedStudents[leftIdx].maLop; break;
+                        case 4: 
+                            {
+                                char dateStr[20];
+                                sprintf(dateStr, "%02d/%02d/%04d", 
+                                       sortedStudents[leftIdx].ngaySinh.day, 
+                                       sortedStudents[leftIdx].ngaySinh.month, 
+                                       sortedStudents[leftIdx].ngaySinh.year);
+                                leftValue = dateStr;
+                            }
+                            break;
+                        case 5: leftValue = to_string(sortedStudents[leftIdx].diemTBTL); break;
+                    }
+                    if(leftValue == keyword) {
+                        result.insert(result.begin(), sortedStudents[leftIdx]);
+                        leftIdx--;
+                    } else break;
+                }
+                
+                int rightIdx = mid + 1;
+                while(rightIdx < sortedStudents.size()) {
+                    string rightValue;
+                    switch(criteria) {
+                        case 1: rightValue = sortedStudents[rightIdx].maSV; break;
+                        case 2: rightValue = sortedStudents[rightIdx].hoTen; break;
+                        case 3: rightValue = sortedStudents[rightIdx].maLop; break;
+                        case 4: 
+                            {
+                                char dateStr[20];
+                                sprintf(dateStr, "%02d/%02d/%04d", 
+                                       sortedStudents[rightIdx].ngaySinh.day, 
+                                       sortedStudents[rightIdx].ngaySinh.month, 
+                                       sortedStudents[rightIdx].ngaySinh.year);
+                                rightValue = dateStr;
+                            }
+                            break;
+                        case 5: rightValue = to_string(sortedStudents[rightIdx].diemTBTL); break;
+                    }
+                    if(rightValue == keyword) {
+                        result.push_back(sortedStudents[rightIdx]);
+                        rightIdx++;
+                    } else break;
+                }
+                break;
+            } else if(compareValue < keyword) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
     }
     
     if(result.empty()) {
         setColor(LIGHTRED);
-        gotoxy(25, 10);
-        cout << "KHONG TIM THAY SINH VIEN NAO!";
-        gotoxy(25, 11);
-        cout << "Nhan phim bat ky de tiep tuc...";
+        gotoxy(25, 12);
+        cout << "KHÔNG TÌM THẤY SINH VIÊN NÀO!";
+        gotoxy(25, 13);
+        cout << "Nhấn phím bất kỳ để tiếp tục...";
         _getch();
     } else {
         // Hiển thị kết quả với phân trang
-        displaySearchResults(result, keyword);
+        displaySearchResults(result, keyword + " (" + algorithmNames[algorithm] + ")");
     }
 }
 
