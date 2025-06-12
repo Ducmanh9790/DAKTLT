@@ -178,105 +178,135 @@ int showAdvancedMenu() {
     }
 }
 
-// Menu con cho sắp xếp (xổ ngang)
+// Menu con cho sắp xếp - Bỏ phần xác nhận
 int showSortMenu() {
     string sortOptions[] = {"Ma SV", "Ho Ten", "Ngay Sinh", "Diem TB", "Ma Lop"};
-    string algorithms[] = {"Selection", "Bubble", "Insertion", "Quick"};
+    string algorithms[] = {"Selection Sort", "Bubble Sort", "Insertion Sort", "Quick Sort"};
     
     int selected = 0;
+    int algSelected = 0;
+    bool showAlgorithms = false;
     int key;
     
     while(true) {
         clearScreen();
         setColor(LIGHTCYAN);
-        gotoxy(25, 3);
-        cout << "=== MENU SAP XEP ===";
+        gotoxy(20, 2);
+        cout << "════════════════════════════════════════════";
+        gotoxy(20, 3);
+        cout << "              MENU SAP XEP                  ";
+        gotoxy(20, 4);
+        cout << "════════════════════════════════════════════";
         
         setColor(YELLOW);
-        gotoxy(15, 5);
-        cout << "Chon tieu chi sap xep (Phim mui ten trai/phai):";
+        gotoxy(15, 6);
+        cout << "Chon tieu chi sap xep:";
         
-        // Menu ngang cho tiêu chí
+        // Menu dọc cho tiêu chí sắp xếp
         for(int i = 0; i < 5; i++) {
-            gotoxy(10 + i * 12, 7);
+            gotoxy(20, 8 + i);
             if(i == selected) {
                 setColor(BLACK);
                 SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
                                       BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_INTENSITY);
-                cout << sortOptions[i];
+                cout << ">> " << left << setw(12) << sortOptions[i] << " <<";
             } else {
                 setColor(LIGHTGRAY);
-                cout << sortOptions[i];
+                cout << "   " << left << setw(12) << sortOptions[i] << "   ";
             }
         }
         
-        setColor(LIGHTGREEN);
-        gotoxy(20, 10);
-        cout << "Nhan Enter de chon, ESC de quay lai";
+        // Hiển thị menu thuật toán nếu được kích hoạt
+        if(showAlgorithms) {
+            setColor(LIGHTCYAN);
+            gotoxy(45, 6);
+            cout << "Chon thuat toan:";
+            
+            // Vẽ khung cho menu thuật toán
+            setColor(LIGHTCYAN);
+            gotoxy(45, 7);
+            for(int i = 0; i < 4; i++) {
+                gotoxy(45, 8 + i);
+                if(i == algSelected) {
+                    setColor(BLACK);
+                    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
+                                          BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+                    cout << ">> " << left << setw(14) << algorithms[i];
+                } else {
+                    setColor(LIGHTCYAN);
+                    cout << "  " << left << setw(15) << algorithms[i];
+                }
+            }
+        }
         
+        // Hướng dẫn sử dụng
+        setColor(LIGHTGREEN);
+        gotoxy(15, 15);
+        if(showAlgorithms) {
+            cout << "↑↓: Chọn thuật toán  │  ←: Đóng menu thuật toán  │  Enter: Thực hiện ngay";
+        } else {
+            cout << "↑↓: Chọn tiêu chí  │  →: Mở menu thuật toán  │  ESC: Quay lại";
+        }
+        
+        setColor(LIGHTMAGENTA);
+        gotoxy(15, 17);
+        cout << "Tiêu chí đã chọn: " << sortOptions[selected];
+        if(showAlgorithms) {
+            gotoxy(15, 18);
+            cout << "Thuật toán đã chọn: " << algorithms[algSelected];
+        }
+        
+        // Đọc phím
         key = _getch();
         
-        if(key == 224) {
+        if(key == 224) { // Phím đặc biệt
             key = _getch();
             switch(key) {
-                case KEY_LEFT:
-                    selected = (selected - 1 + 5) % 5;
+                case KEY_UP:
+                    if(showAlgorithms) {
+                        algSelected = (algSelected - 1 + 4) % 4;
+                    } else {
+                        selected = (selected - 1 + 5) % 5;
+                    }
+                    break;
+                case KEY_DOWN:
+                    if(showAlgorithms) {
+                        algSelected = (algSelected + 1) % 4;
+                    } else {
+                        selected = (selected + 1) % 5;
+                    }
                     break;
                 case KEY_RIGHT:
-                    selected = (selected + 1) % 5;
+                    if(!showAlgorithms) {
+                        showAlgorithms = true;
+                        algSelected = 0; // Reset về thuật toán đầu tiên
+                    }
+                    break;
+                case KEY_LEFT:
+                    if(showAlgorithms) {
+                        showAlgorithms = false;
+                    }
                     break;
             }
         } else if(key == KEY_ENTER) {
-            // Chọn thuật toán
-            int algSelected = 0;
-            while(true) {
-                clearScreen();
-                setColor(LIGHTCYAN);
-                gotoxy(25, 3);
-                cout << "=== CHON THUAT TOAN ===";
-                
-                setColor(YELLOW);
-                gotoxy(15, 5);
-                cout << "Da chon: " << sortOptions[selected];
-                gotoxy(15, 6);
-                cout << "Chon thuat toan sap xep:";
-                
-                for(int i = 0; i < 4; i++) {
-                    gotoxy(20, 8 + i);
-                    if(i == algSelected) {
-                        setColor(BLACK);
-                        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
-                                              BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY);
-                        cout << ">> " << algorithms[i] << " Sort <<";
-                    } else {
-                        setColor(LIGHTGRAY);
-                        cout << "   " << algorithms[i] << " Sort   ";
-                    }
-                }
-                
-                key = _getch();
-                if(key == 224) {
-                    key = _getch();
-                    switch(key) {
-                        case KEY_UP:
-                            algSelected = (algSelected - 1 + 4) % 4;
-                            break;
-                        case KEY_DOWN:
-                            algSelected = (algSelected + 1) % 4;
-                            break;
-                    }
-                } else if(key == KEY_ENTER) {
-                    setColor(LIGHTGRAY);
-                    return selected + 1; // Trả về tiêu chí được chọn
-                } else if(key == KEY_ESC) {
-                    break;
-                }
+            if(showAlgorithms) {
+                // BỎ PHẦN XÁC NHẬN - THỰC HIỆN NGAY LẬP TỨC
+                setColor(LIGHTGRAY);
+                return selected + 1; // Trả về tiêu chí được chọn (1-5)
+            } else {
+                // Nếu chưa chọn thuật toán, tự động mở menu thuật toán
+                showAlgorithms = true;
+                algSelected = 0;
             }
         } else if(key == KEY_ESC) {
-            return 0;
+            if(showAlgorithms) {
+                showAlgorithms = false;
+            } else {
+                setColor(LIGHTGRAY);
+                return 0; // Thoát
+            }
         }
     }
-    return 0;
 }
 
 // Menu con cho tìm kiếm
@@ -962,8 +992,10 @@ string formatName(string name) {
     return name;
 }
 
-// Sắp xếp sinh viên với thông báo thành công
+// Cập nhật hàm sortStudents để hiển thị thông tin thuật toán
 void sortStudents(vector<Student>& students, int choice) {
+    string sortNames[] = {"", "Mã SV", "Họ Tên", "Ngày Sinh", "Điểm TB", "Mã Lớp"};
+    
     switch(choice) {
         case 1: // Sắp xếp theo mã SV
             sort(students.begin(), students.end(), 
@@ -1003,24 +1035,34 @@ void sortStudents(vector<Student>& students, int choice) {
             clearScreen();
             setColor(LIGHTRED);
             gotoxy(30, 10);
-            cout << "Lua chon khong hop le!";
+            cout << "Lựa chọn không hợp lệ!";
             gotoxy(30, 11);
-            cout << "Nhan phim bat ky de tiep tuc...";
+            cout << "Nhấn phím bất kỳ để tiếp tục...";
             _getch();
             return;
     }
     
-    // LƯU TỰ ĐỘNG SAU KHI SẮP XẾP
+    // Lưu tự động sau khi sắp xếp
     saveToFile(students);
     
     clearScreen();
     setColor(LIGHTGREEN);
-    gotoxy(30, 10);
-    cout << "SAP XEP THANH CONG!";
-    gotoxy(30, 11);
-    cout << "Du lieu da duoc luu tu dong!";
-    gotoxy(30, 12);
-    cout << "Nhan phim bat ky de xem ket qua...";
+    gotoxy(25, 9);
+    cout << "════════════════════════════════════════";
+    gotoxy(25, 10);
+    cout << "          SẮP XẾP THÀNH CÔNG!           ";
+    gotoxy(25, 11);
+    cout << "════════════════════════════════════════";
+    
+    setColor(YELLOW);
+    gotoxy(20, 13);
+    cout << "Đã sắp xếp theo: " << sortNames[choice];
+    gotoxy(20, 14);
+    cout << "Dữ liệu đã được lưu tự động!";
+    
+    setColor(WHITE);
+    gotoxy(20, 16);
+    cout << "Nhấn phím bất kỳ để xem kết quả...";
     _getch();
     
     printStudents(students);

@@ -30,6 +30,9 @@ o	Khi chọn M1, chương trình cho phép nhập vào hồ sơ sinh viên gồm
 	Điểm trung bình tích lũy
 o	Khi chọn M2 chương trình cho phép in ra danh sách sinh viên theo thứ tự đã sắp xếp (khi chọn M3).
 o	Khi chọn M3 chương trình cho phép chọn thuật toán sắp xếp (chọn, chèn, nổi bọt, quicksort) và khóa để sắp xếp (mã sinh viên, họ và tên, ngày sinh, điểm trung bình tích lũy). Có thể xây dựng các mục chọn này dạng menu (cấp 2).
+o   Khi chọn M4 chương trình cho phép chọn thuật toán tìm kiếm (tuần tự, nhị phân), khóa cần tìm kiếm (mã lớp, mã sinh viên, Họ và tên, ngày sinh, điểm trung bình tích lũy) và giá trị của khóa cần tìm. Có thể xây dựng các mục chọn này dạng menu (cấp 2).
+o   Khi chọn M5 chương trình cho phép chọn báo cáo số lượng SV theo lớp hoặc tỷ lệ phân loại kết quả học tập (xuất sắc, giỏi, khá, trung bình, yếu) theo lớp. Có thể xây dựng các mục chọn này dạng menu (cấp 2).
+o   Khi chọn M6 chương trình kết thúc.
 
 	Kiến thức liên quan: 
 o	Vào ra bàn phím/màn hình
