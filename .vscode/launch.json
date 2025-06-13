@@ -1,11 +1,12 @@
 {
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "Debug C++",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/main.exe",
+            "program": "${workspaceFolder}/main_no_color.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

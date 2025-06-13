@@ -8,8 +8,8 @@
             "args": [
                 "-g",
                 "-o",
-                "main.exe",
-                "main.cpp",
+                "main_no_color.exe",
+                "main_no_color.cpp",
                 "-std=c++17"
             ],
             "group": {
@@ -29,6 +29,6 @@
                 "-std=c++17"
             ],
             "group": "build"
-        }
+        },
     ]
 }
