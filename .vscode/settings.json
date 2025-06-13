@@ -56,7 +56,8 @@
         "text_encoding": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "cstdarg": "cpp"
     },
     "code-runner.runInTerminal": false,
     "code-runner.executorMap": {

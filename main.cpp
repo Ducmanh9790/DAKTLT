@@ -955,9 +955,9 @@ void saveToFile(const vector<Student>& students) {
     file.close();
 }
 
-// Sửa lại hàm loadFromFile - đọc text format
+// hàm loadFromFile - đọc text format
 void loadFromFile(vector<Student>& students) {
-    ifstream file("students.txt");  // Đổi từ .dat sang .txt
+    ifstream file("students.txt");  
     if(!file) {
         students.clear();
         return;
@@ -1338,7 +1338,7 @@ void displaySearchResults(const vector<Student>& results, const string& keyword)
         int tableX = 8;
         int tableY = 6;
         int tableWidth = 80;
-        int tableHeight = RECORDS_PER_PAGE + 4; // TĂNG TỪ +3 LÊN +4
+        int tableHeight = RECORDS_PER_PAGE + 4; 
         
         drawTableBorder(tableX, tableY, tableWidth, tableHeight);
         printTableHeader(tableX, tableY + 1);

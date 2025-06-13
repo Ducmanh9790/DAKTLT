@@ -1,23 +1,34 @@
 {
     "version": "2.0.0",
     "tasks": [
-      {
-        "label": "build cpp",
-        "type": "shell",
-        "command": "g++",
-        "args": [
-          "-g",
-          "main.cpp",
-          "-o",
-          "main.exe"
-        ],
-        "group": {
-          "kind": "build",
-          "isDefault": true
+        {
+            "label": "Build Main (Advanced)",
+            "type": "cppbuild",
+            "command": "g++",
+            "args": [
+                "-g",
+                "-o",
+                "main.exe",
+                "main.cpp",
+                "-std=c++17"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
-        "problemMatcher": ["$gcc"],
-        "detail": "Compiler for C++"
-      }
+        {
+            "label": "Build Simple Version",
+            "type": "cppbuild", 
+            "command": "g++",
+            "args": [
+                "-g",
+                "-o", 
+                "simple.exe",
+                "simple_version.cpp",
+                "-std=c++17"
+            ],
+            "group": "build"
+        }
     ]
-  }
-  
+}
